@@ -27,7 +27,7 @@ mood_keywords = {
 # App Header
 # -----------------------------
 st.title("💬 MoodQuote")
-st.subheader("Generate quotes from the internet based on your mood")
+st.subheader("QUOTES for your MOOD")
 
 st.markdown("---")
 
