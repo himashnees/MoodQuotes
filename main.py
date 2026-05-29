@@ -1,61 +1,48 @@
 import streamlit as st
 import requests
 
-# Mood to Quotable tag mapping
-mood_tags = {
+# Mood to keyword mapping
+mood_keywords = {
     "Happy": "happiness",
-    "Sad": "inspirational",
+    "Sad": "inspiration",
     "Motivated": "success",
     "Stressed": "wisdom",
-    "Angry": "wisdom",
+    "Angry": "calm",
     "Love": "love",
     "Life": "life"
 }
 
 st.header("QUOTES for your MOOD!")
-st.subheader("Generate mood-based quotes from the internet")
+st.subheader("Generate quotes from the internet based on your mood")
 
-# Dropdown for mood selection
 selected_mood = st.selectbox(
     "Select your mood",
-    list(mood_tags.keys())
-)
-
-# Number of quotes
-number = st.number_input(
-    "Number of quotes",
-    min_value=1,
-    max_value=10,
-    value=1,
-    step=1
+    list(mood_keywords.keys())
 )
 
 if st.button("Generate"):
-    tag = mood_tags[selected_mood]
+    keyword = mood_keywords[selected_mood]
 
-    url = f"https://api.quotable.io/quotes/random?tags={tag}&limit={number}"
+    url = f"https://zenquotes.io/api/random/{keyword}"
 
     try:
         response = requests.get(url, timeout=10)
-        st.write("Status Code:", response.status_code)
-st.write("Response:", response.text)
-response.raise_for_status()
+        response.raise_for_status()
 
-        quotes = response.json()
+        data = response.json()
 
-        st.success(f"Here are {number} quote(s) for mood: {selected_mood}")
+        quote = data[0]["q"]
+        author = data[0]["a"]
 
-        for item in quotes:
-            quote = item["content"]
-            author = item["author"]
+        st.success(f"Quote for mood: {selected_mood}")
 
-            st.write(f"**“{quote}”**")
-            st.write(f"— {author}")
-            st.divider()
+        st.write(f"**“{quote}”**")
+        st.write(f"— {author}")
 
     except requests.exceptions.RequestException as e:
-    st.error(f"Request Error: {e}")
+        st.error("Could not fetch quote from the internet.")
+        st.write("Technical error:", e)
 
     except Exception as e:
-        st.error(f"Something went wrong: {e}")
-    
+        st.error("Something went wrong.")
+        st.write("Technical error:", e)
