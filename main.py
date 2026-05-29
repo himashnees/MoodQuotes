@@ -1,34 +1,59 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_classic.chains import LLMChain
-from langchain_core.prompts import PromptTemplate
 import streamlit as st
-import os
+import requests
 
-os.environ['GOOGLE_API_KEY'] = st.secrets['GOOGLE_API_KEY']
+# Mood to Quotable tag mapping
+mood_tags = {
+    "Happy": "happiness",
+    "Sad": "inspirational",
+    "Motivated": "success",
+    "Stressed": "wisdom",
+    "Angry": "wisdom",
+    "Love": "love",
+    "Life": "life"
+}
 
-# Create prompt template for generating tweets
+st.header("QUOTES for your MOOD!")
+st.subheader("Generate mood-based quotes from the internet")
 
-tweet_template = "Give me {number} tweets on {topic}"
+# Dropdown for mood selection
+selected_mood = st.selectbox(
+    "Select your mood",
+    list(mood_tags.keys())
+)
 
-tweet_prompt = PromptTemplate(template = tweet_template, input_variables = ['number', 'topic'])
-
-# Initialize Google's Gemini model
-gemini_model = ChatGoogleGenerativeAI(model = "gemini-2.5-flash")
-
-
-# Create LLM chain using the prompt template and model
-tweet_chain = tweet_prompt | gemini_model
-
-
-st.header("Tweet Generator - SATVIK")
-
-st.subheader("Generate tweets using Generative AI")
-
-topic = st.text_input("Topic")
-
-number = st.number_input("Number of tweets", min_value = 1, max_value = 10, value = 1, step = 1)
+# Number of quotes
+number = st.number_input(
+    "Number of quotes",
+    min_value=1,
+    max_value=10,
+    value=1,
+    step=1
+)
 
 if st.button("Generate"):
-    tweets = tweet_chain.invoke({"number" : number, "topic" : topic})
-    st.write(tweets.content)
+    tag = mood_tags[selected_mood]
+
+    url = f"https://api.quotable.io/quotes/random?tags={tag}&limit={number}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+
+        quotes = response.json()
+
+        st.success(f"Here are {number} quote(s) for mood: {selected_mood}")
+
+        for item in quotes:
+            quote = item["content"]
+            author = item["author"]
+
+            st.write(f"**“{quote}”**")
+            st.write(f"— {author}")
+            st.divider()
+
+    except requests.exceptions.RequestException:
+        st.error("Could not fetch quotes. Please check your internet connection.")
+
+    except Exception as e:
+        st.error(f"Something went wrong: {e}")
     
