@@ -37,7 +37,9 @@ if st.button("Generate"):
 
     try:
         response = requests.get(url, timeout=10)
-        response.raise_for_status()
+        st.write("Status Code:", response.status_code)
+st.write("Response:", response.text)
+response.raise_for_status()
 
         quotes = response.json()
 
@@ -51,8 +53,8 @@ if st.button("Generate"):
             st.write(f"— {author}")
             st.divider()
 
-    except requests.exceptions.RequestException:
-        st.error("Could not fetch quotes. Please check your internet connection.")
+    except requests.exceptions.RequestException as e:
+    st.error(f"Request Error: {e}")
 
     except Exception as e:
         st.error(f"Something went wrong: {e}")
